@@ -42,8 +42,10 @@ class YADTQWorker:
                     break
                 logger.info(f"Processing task: {task.get('task_id')}")
                 self.process_task(task)
+                
 
     def process_task(self, task: Dict):
+        self.result_backend.update_task_status(task["task_id"], "executing")
         task_id = task["task_id"]
         task_type = task["task_type"]
         task_args = task["args"]
@@ -52,9 +54,9 @@ class YADTQWorker:
             logger.info(f"Executing task {task_id} of type {task_type} with arguments {task_args}.")
             result = getattr(self.task_executor, task_type)(**task_args)  # This will call `self.task_executor.add(a=5, b=3)` for an "add" task
             logger.info(f"Task {task_id} completed with result: {result}")
-            self.result_backend.store_task_result(task_id, result)
+            self.result_backend.store_task_result(task_id, result, "completed")
         except Exception as e:
             logger.error(f"Error processing task {task_id}: {str(e)}")
             error_result = {"status": "error", "error": str(e)}
-            self.result_backend.store_task_result(task_id, error_result)
+            self.result_backend.store_task_result(task_id, error_result, "error")
 

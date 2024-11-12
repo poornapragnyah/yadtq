@@ -15,15 +15,16 @@ class RedisResultBackend:
         except redis.ConnectionError as e:
             logger.error(f"Failed to connect to Redis at {host}:{port}. Error: {str(e)}")
             raise e
-
-    def store_task_result(self, task_id: str, result: Dict):
+        
+    def store_task_result(self, task_id: str, result: Dict, status: str):
         try:
-            logger.info(f"Storing result for task {task_id}")
+            logger.info(f"Storing result for task {task_id} with status {status}")
+            result['status'] = status
             self.redis.set(f"task:{task_id}", json.dumps(result))
-            logger.info(f"Task {task_id} result successfully stored.")
+            logger.info(f"Task {task_id} result successfully stored with status {status}.")
         except redis.RedisError as e:
             logger.error(f"Error storing result for task {task_id}. Error: {str(e)}")
-            raise e
+            raise e        
 
     def get_task_result(self, task_id: str) -> Dict:
         try:
@@ -38,4 +39,18 @@ class RedisResultBackend:
         except redis.RedisError as e:
             logger.error(f"Error fetching result for task {task_id}. Error: {str(e)}")
             return {}
+        
+    def update_task_status(self, task_id: str, status: str):
+        try:
+            logger.info(f"Updating status for task {task_id} to {status}")
+            task_data = self.get_task_result(task_id)
+            if task_data:
+                task_data['status'] = status
+                self.redis.set(f"task:{task_id}", json.dumps(task_data))
+                logger.info(f"Task {task_id} status successfully updated to {status}.")
+            else:
+                logger.warning(f"Cannot update status for task {task_id} as it does not exist.")
+        except redis.RedisError as e:
+            logger.error(f"Error updating status for task {task_id}. Error: {str(e)}")
+            raise e
 

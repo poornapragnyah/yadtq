@@ -30,6 +30,7 @@ class YADTQClient:
         # Publish the task to Kafka message broker
         try:
             self.kafka_broker.publish_task("task_queue", task)
+            self.redis_backend.store_task_result(task_id, {}, "queued")
             logger.info(f"Task {task_id} successfully submitted to Kafka")
         except Exception as e:
             logger.error(f"Failed to publish task {task_id} to Kafka. Error: {str(e)}")
@@ -45,14 +46,14 @@ class YADTQClient:
 
         return task_id
 
-    def get_task_status(self, task_id):
-        logger.info(f"Fetching status for Task ID: {task_id}")
+    def get_task_result(self, task_id):
+        logger.info(f"Fetching result for Task ID: {task_id}")
         
         try:
-            status = self.redis_backend.get_task_result(task_id)
-            logger.info(f"Task ID {task_id} status: {status}")
+            result = self.redis_backend.get_task_result(task_id)
+            logger.info(f"Task ID {task_id} result: {result}")
         except Exception as e:
-            logger.error(f"Failed to fetch status for Task ID {task_id}. Error: {str(e)}")
+            logger.error(f"Failed to fetch result for Task ID {task_id}. Error: {str(e)}")
             raise  # Reraise the exception after logging
 
-        return status
+        return result

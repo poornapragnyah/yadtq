@@ -56,7 +56,7 @@ def main():
                 task_id = client.submit_task(task_type, a, b)
                 logger.info(f"Task {task_id} has been submitted for task {task_type}")
 
-                result = client.get_task_status(task_id)
+                result = client.get_task_result(task_id)
                 logger.info(f"Task result: {result}")
 
     except FileNotFoundError:
