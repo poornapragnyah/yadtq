@@ -9,7 +9,7 @@ from utils.logging import setup_logging
 
 def main():
     setup_logging(__name__)
-    logger = logging.getLogger("my_logger")
+    logger = logging.getLogger(__name__)
     
     # Check if an input file path is provided
     if len(sys.argv) < 2:
@@ -35,6 +35,10 @@ def main():
     client = YADTQClient(broker, result_backend)
     logger.info("Started Client")
 
+    # logger.info("Flushing Redis database...")
+    # result_backend.redis.flushdb()
+    # logger.info("Redis database has been flushed.")
+
     # Open the input file and process each line
     try:
         with open(input_file_path, 'r') as file:
@@ -56,12 +60,31 @@ def main():
                 task_id = client.submit_task(task_type, a, b)
                 logger.info(f"Task {task_id} has been submitted for task {task_type}")
 
-                result = client.get_task_result(task_id)
-                logger.info(f"Task result: {result}")
-
     except FileNotFoundError:
         logger.error(f"File not found: {input_file_path}")
         sys.exit(1)
+
+    try:
+        logger.info("Fetching all task keys from Redis...")
+        task_keys = result_backend.redis.keys("task:*")  # Get all keys matching 'task:*'
+
+        if not task_keys:
+            logger.info("No tasks found in Redis.")
+        else:
+            logger.info(f"Found {len(task_keys)} tasks in Redis.")
+            for task_key in task_keys:
+                # Get the task result using the key
+                task_id = task_key.decode('utf-8').split(':')[1]  # Extract task ID from key
+                logger.info(f"Fetching result for task {task_id}")
+                result = result_backend.get_task_result(task_id)
+
+                # Log the task result
+                if result:
+                    logger.info(f"Task {task_id} result: {result}")
+                else:
+                    logger.warning(f"Task {task_id} result not found in Redis.")
+    except Exception as e:
+        logger.error(f"Error fetching task results from Redis: {str(e)}")
 
 if __name__ == "__main__":
     main()

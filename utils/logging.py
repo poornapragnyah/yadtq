@@ -7,7 +7,7 @@ def setup_logging(module_name:str):
         logger.setLevel(logging.DEBUG)  # Set the minimum log level (DEBUG, INFO, WARNING, etc.)
 
         # Create a file handler that overwrites the log file each time
-        file_handler = logging.FileHandler("app.log", mode="w")
+        file_handler = logging.FileHandler( "app.log", mode="w")
         file_handler.setLevel(logging.DEBUG)  # Set the minimum log level for this handler
 
         # Create a formatter and set it for the handler

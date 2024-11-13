@@ -53,8 +53,9 @@ class YADTQWorker:
         try:
             logger.info(f"Executing task {task_id} of type {task_type} with arguments {task_args}.")
             result = getattr(self.task_executor, task_type)(**task_args)  # This will call `self.task_executor.add(a=5, b=3)` for an "add" task
+            store = {"result":result}
             logger.info(f"Task {task_id} completed with result: {result}")
-            self.result_backend.store_task_result(task_id, result, "completed")
+            self.result_backend.store_task_result(task_id, store, "completed")
         except Exception as e:
             logger.error(f"Error processing task {task_id}: {str(e)}")
             error_result = {"status": "error", "error": str(e)}
