@@ -1,6 +1,6 @@
-# YADTQ - Yet Another Distributed Task Queue
+# CABBAGE
 
-YADTQ is a distributed task queue system designed to handle task execution in a scalable and fault-tolerant manner. It leverages Kafka as the message broker for task distribution and Redis as the result backend for storing task statuses and results. The system is designed to support multiple task types and provides a simple interface for submitting and processing tasks.
+Cabbage is a distributed task queue system designed to handle task execution in a scalable and fault-tolerant manner. It leverages Kafka as the message broker for task distribution and Redis as the result backend for storing task statuses and results. The system is designed to support multiple task types and provides a simple interface for submitting and processing tasks.
 
 ## Features
 
