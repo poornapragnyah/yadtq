@@ -69,3 +69,25 @@ The system includes a modular task execution framework that allows defining cust
 ## Logging
 
 The system uses a custom logging setup to log events to both the console and a file (`app.log`). Logs include detailed information about task submission, execution, and result storage.
+
+## Fault Tolerance
+
+Cabbage incorporates fault tolerance mechanisms to ensure reliable task execution and system stability:
+
+1. **Heartbeat Monitoring**:
+   - The worker continuously monitors its running state using a `_running` flag. This allows the system to gracefully handle shutdowns or interruptions (e.g., via a `KeyboardInterrupt`).
+   - If the worker is stopped during task processing, it ensures that no new tasks are consumed, and the system can safely resume from the last known state.
+
+2. **Error Handling During Task Execution**:
+   - If an error occurs while executing a task, the worker catches the exception and updates the task status in Redis to "error" along with the error details. This ensures that failed tasks are not lost and can be inspected or retried later.
+
+3. **Task Status Updates**:
+   - The worker updates the task status in Redis at every stage of the task lifecycle (e.g., "queued," "executing," "completed," or "error"). This ensures that the system can track the progress of each task and recover from failures by reprocessing tasks that are stuck in an incomplete state.
+
+4. **Kafka Polling with Timeout**:
+   - The Kafka consumer polls for tasks with a configurable timeout. If no tasks are available within the specified time, the worker avoids busy waiting by introducing a small delay. This prevents resource exhaustion and ensures efficient task consumption.
+
+5. **Redis Connection Resilience**:
+   - The `RedisResultBackend` class includes error handling for Redis operations. If a connection error occurs, it logs the issue and raises an exception, allowing the system to handle the failure gracefully.
+
+These mechanisms collectively ensure that Cabbage can handle unexpected failures, maintain task integrity, and provide a reliable distributed task queue system.
